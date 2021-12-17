@@ -1,0 +1,72 @@
+version: '3.1'
+services:
+  odoo:
+    build: 
+      context: ./bin
+      args:
+        ODOO_VERSION: "13.0"
+        UID: "${UID:-1000}"
+        GID: "${GID:-1000}"
+    container_name: devel_odoo
+    restart: always
+    depends_on:
+      - devel_db
+      - wdb
+    ports:
+      - "80:8069"
+    volumes:
+      - odoo-web-data:/var/lib/odoo
+      - ./bin/config:/etc/odoo
+      - ./bin/addons:/mnt/extra-addons
+    environment:
+      HOST: devel_db
+      USER: odoo
+      PASSWORD: myodoo
+      WDB_SOCKET_SERVER: wdb
+      WDB_NO_BROWSER_AUTO_OPEN: 1
+      WDB_WEB_SERVER: "localdev"
+      WDB_WEB_PORT: "13984"
+    command:
+      - odoo
+      - --limit-memory-soft=0
+      - --limit-time-real-cron=9999999
+      - --limit-time-real=9999999
+      - --workers=0
+      - --dev=reload,qweb,werkzeug,xml
+      - --log-level=debug
+
+  odoodb:
+    image: postgres:13
+    container_name: devel_db
+    restart: always
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=myodoo
+      - POSTGRES_USER=odoo
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data/pgdata
+
+  pgweb:
+    image: sosedoff/pgweb
+    container_name: devel_pgweb
+    restart: always
+    depends_on:
+      - devel_db
+    ports:
+      - "13081:8081"
+    environment:
+      DATABASE_URL: postgres://odoo:myodoo@devel_db:5432/postgres?sslmode=disable
+
+  wdb:
+    image: kozea/wdb
+    container_name: devel_wdb
+    restart: always
+    ports:
+      - "13984:1984"
+    # HACK https://github.com/Kozea/wdb/issues/136
+    init: true
+
+volumes:
+  odoo-web-data:
+  odoo-db-data:
