@@ -5,7 +5,7 @@ if ! [ -x "$(command -v docker-compose)" ]; then
   exit 1
 fi
 
-domains=(onlineserver-fperez.ddns.net)
+domains=(DOMINIO www.DOMINIO)
 rsa_key_size=4096
 data_path="./bin/certbot"
 email="admin@hcsinergia.com" # Adding a valid address is strongly recommended
