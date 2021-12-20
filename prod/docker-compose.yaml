@@ -1,0 +1,69 @@
+version: '3.1'
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./proxy/config/nginx:/etc/nginx/conf.d
+      - ./proxy/certbot/conf:/etc/letsencrypt
+      - ./proxy/certbot/www:/var/www/certbot
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./proxy/certbot/conf:/etc/letsencrypt
+      - ./proxy/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+
+  odoo:
+    build: 
+      context: ./bin
+      args:
+        ODOO_VERSION: "13.0"
+        UID: "${UID:-1000}"
+        GID: "${GID:-1000}"
+    container_name: prod_odoo
+    restart: always
+    depends_on:
+      - odoodb
+    ports:
+      - "8069"
+      - "8072"
+    volumes:
+      - odoo-web-data:/var/lib/odoo
+      - ./bin/config:/etc/odoo
+      - ./addons:/mnt/extra-addons
+    environment:
+      - HOST=odoodb
+      - USER=odoo
+      - PASSWORD=odoodbpass
+
+  odoodb:
+    image: postgres:13
+    restart: always
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=odoodbpass
+      - POSTGRES_USER=odoo
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data/pgdata
+
+  pgweb:
+    image: sosedoff/pgweb
+    restart: always
+    depends_on:
+      - odoodb
+    ports:
+      - "8081:8081"
+    environment:
+      DATABASE_URL: postgres://odoo:odoodbpass@odoodb:5432/postgres?sslmode=disable
+
+volumes:
+  odoo-web-data:
+  odoo-db-data:
