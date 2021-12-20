@@ -58,9 +58,11 @@ cambiando 'DOMINIO' con el dominio que tengamo (Por ejemplo 'hcsinergia.com'). U
 
 En un momento el script se va a detener y va a especificar que se cree un registro TXT en el DNS con el nombre y valor especificado. esto es obligatorio, sino no va a funcionar, el registro deberia tener este formato:
 
-> TYPE: TXT
-> NAME: _acme-challenge.hcsinergia.com.
-> VALUE: VGrmQt3pMKt73AdgTf-DGNB7N5aWbmtmAL6e-cqtrqd
+```
+TYPE: TXT
+NAME: _acme-challenge.hcsinergia.com.
+VALUE: VGrmQt3pMKt73AdgTf-DGNB7N5aWbmtmAL6e-cqtrqd
+```
 
 Una vez que agreguemos el registro al DNS, podemos presionar la tecla ENTER y seguir ejecutando el script.
 
@@ -76,8 +78,10 @@ Para poder obtener los repositorios vamos a tener que editar los archivos:
 
 Y en caso de necesitar uno nuevo debemos agregar abajo de todo una linea como la siguiente:
 
-> # NOMBRE_REPO
-> git clone https://github.com/USUARIO/NOMBRE_REPO.git -b $ODOO_VERSION --depth $DEPTH_DEFAULT $ADDONS_PATH/NOMBRE_REPO
+```
+# NOMBRE_REPO
+git clone https://github.com/USUARIO/NOMBRE_REPO.git -b $ODOO_VERSION --depth $DEPTH_DEFAULT $ADDONS_PATH/NOMBRE_REPO
+```
 
 Y en el archivo '/bin/config/odoo.conf' se debe agregar:
 
