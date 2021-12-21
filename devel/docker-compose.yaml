@@ -17,11 +17,11 @@ services:
     volumes:
       - odoo-web-data:/var/lib/odoo
       - ./bin/config:/etc/odoo
-      - ./bin/addons:/mnt/extra-addons
+      - ./addons:/mnt/extra-addons
     environment:
       HOST: devel_db
       USER: odoo
-      PASSWORD: myodoo
+      PASSWORD: odoodbpass
       WDB_SOCKET_SERVER: wdb
       WDB_NO_BROWSER_AUTO_OPEN: 1
       WDB_WEB_SERVER: "localdev"
@@ -41,7 +41,7 @@ services:
     restart: always
     environment:
       - POSTGRES_DB=postgres
-      - POSTGRES_PASSWORD=myodoo
+      - POSTGRES_PASSWORD=odoodbpass
       - POSTGRES_USER=odoo
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
@@ -56,7 +56,7 @@ services:
     ports:
       - "13081:8081"
     environment:
-      DATABASE_URL: postgres://odoo:myodoo@devel_db:5432/postgres?sslmode=disable
+      DATABASE_URL: postgres://odoo:odoodbpass@devel_db:5432/postgres?sslmode=disable
 
   wdb:
     image: kozea/wdb
