@@ -10,7 +10,7 @@ services:
     container_name: devel_odoo
     restart: always
     depends_on:
-      - devel_db
+      - odoodb
       - wdb
     ports:
       - "80:8069"
@@ -19,7 +19,7 @@ services:
       - ./bin/config:/etc/odoo
       - ./addons:/mnt/extra-addons
     environment:
-      HOST: devel_db
+      HOST: odoodb
       USER: odoo
       PASSWORD: odoodbpass
       WDB_SOCKET_SERVER: wdb
@@ -37,7 +37,6 @@ services:
 
   odoodb:
     image: postgres:13
-    container_name: devel_db
     restart: always
     environment:
       - POSTGRES_DB=postgres
@@ -52,11 +51,11 @@ services:
     container_name: devel_pgweb
     restart: always
     depends_on:
-      - devel_db
+      - odoodb
     ports:
       - "13081:8081"
     environment:
-      DATABASE_URL: postgres://odoo:odoodbpass@devel_db:5432/postgres?sslmode=disable
+      DATABASE_URL: postgres://odoo:odoodbpass@odoodb:5432/postgres?sslmode=disable
 
   wdb:
     image: kozea/wdb

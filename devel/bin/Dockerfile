@@ -32,31 +32,49 @@ RUN apt-get install -y python-dev freetds-dev
 RUN apt-get install -y python-matplotlib font-manager python-setuptools
 
 # odoo argentina (nuevo modulo de FE).
-RUN apt-get install -y swig libffi-dev libssl-dev python-m2crypto python-httplib2 mercurial
-# NECESATIOS PARA SIGNXML
+RUN apt-get install -y libffi-dev libssl-dev python-m2crypto python-httplib2 mercurial
+
+# NECESARIOS PARA SIGNXML
 RUN apt-get install -y libxml2-dev libxslt-dev lib32z1-dev liblz-dev
 
 RUN apt-get install -y python3-pip python3-gevent python3-dev python3-venv \
     python3-matplotlib python3-httplib2 python3-wheel python3-setuptools
 
-# instala pyafip desde google code usando mercurial
-# M2Crypto suponemos que no haria falta ahora
-# RUN hg clone https://code.google.com/p/pyafipws
-RUN git clone https://github.com/ingadhoc/pyafipws -b py3k
-WORKDIR /pyafipws/
-# ADD ./requirements.txt /pyafipws/
-RUN pip3 install -r requirements.txt
-RUN python3 setup.py install
-#RUN chmod 777 -R /usr/local/lib/python3.7/dist-packages/pyafipws/
+# Upgrade antes de instalar modulos
+RUN pip3 install --upgrade pip
 
-RUN pip3 install --upgrade pip && pip3 install pyOpenSSL
+# Modulos desde requeriments.txt
+RUN pip3 install \
+    # oca reports
+    xlwt \
+    # oca partner contacts
+    unicodecsv \ 
+    unicode \ 
+    # OCA knowledge
+    python-magic \ 
+    wheel \
+    urllib3 \
+    pyOpenSSL \
+    M2Crypto \
+    httplib2>=0.7 \
+    git+https://github.com/pysimplesoap/pysimplesoap@e1453f385cee119bf8cfb53c763ef212652359f5 \
+    git+https://github.com/OCA/openupgradelib@master \
+    git+https://github.com/ingadhoc/pyafipws@py3k \
+    git+https://github.com/adhoc-dev/aeroolib@master-fix-ods \
+    git+https://github.com/aeroo/currency2text \
+    # use this genshi version to fix error when, for eg, you send arguments like "date=True" check this https://genshi.edgewall.org/ticket/600
+    git+https://github.com/edgewall/genshi@stable/0.7.x \
+    qrcode
+
 
 ## Clean apt-get (copied from odoo)
 RUN apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false -o APT::AutoRemove::SuggestsImportant=false
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-USER odoo
+# fix 'dh key too small' error https://stackoverflow.com/questions/38015537/python-requests-exceptions-sslerror-dh-key-too-small
+RUN sed  -i "s/CipherString = DEFAULT@SECLEVEL=2/CipherString = DEFAULT@SECLEVEL=1/" /etc/ssl/openssl.cnf
+RUN mkdir /usr/local/lib/python3.7/dist-packages/pyafipws/cache
+RUN chmod -R 777 /usr/local/lib/python3.7/dist-packages/pyafipws/cache
 
-COPY ./requirements.txt /
-RUN pip3 install -r requirements.txt
+USER odoo
